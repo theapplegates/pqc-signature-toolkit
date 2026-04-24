@@ -1,29 +1,15 @@
-plugins = []
-headers = []
-redirects = []
+[build]
+  base = "/Users/thor3/pqc-work/signature-web"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [functions]
 
   [functions."*"]
 
-[build]
-  command = "npm run build"
-  publish = "dist"
+[[headers]]
 
-base = "/Users/thor3/pqc-work/signature-web"
-
-
-  [build.environment]
-  NODE_VERSION = "20"
-
-  [build.processing]
-
-    [build.processing.css]
-
-    [build.processing.html]
-
-    [build.processing.images]
-
-    [build.processing.js]
-
-  [build.services]
+[[redirects]]

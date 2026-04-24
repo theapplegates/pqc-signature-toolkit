@@ -71,11 +71,7 @@ const App: React.FC = () => {
       case TABS.SIGN:
         return <SignTab keys={keys} />;
       case TABS.VERIFY:
-        return (
-          <VerifierAccessGate>
-            <VerifyTab />
-          </VerifierAccessGate>
-        );
+        return <VerifyTab />;
       case TABS.ENCRYPT:
         return <EncryptTab keys={keys} />;
       case TABS.DECRYPT:
@@ -96,7 +92,7 @@ const App: React.FC = () => {
     }
   };
 
-  return (
+  const appShell = (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
@@ -135,6 +131,12 @@ const App: React.FC = () => {
         />
       )}
     </div>
+  );
+
+  return (
+    <VerifierAccessGate>
+      {appShell}
+    </VerifierAccessGate>
   );
 };
 

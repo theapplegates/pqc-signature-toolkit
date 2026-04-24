@@ -7,9 +7,14 @@ redirects = []
   [functions."*"]
 
 [build]
+  command = "npm run build"
+  publish = "dist"
+
 base = "/Users/thor3/pqc-work/signature-web"
 
+
   [build.environment]
+  NODE_VERSION = "20"
 
   [build.processing]
 

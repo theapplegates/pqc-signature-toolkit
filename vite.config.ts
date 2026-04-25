@@ -20,6 +20,7 @@ export default defineConfig({
     exclude: ['sequoia-wasm'],
   },
   build: {
+    outDir: 'dist',
     target: 'es2022',
   },
 });

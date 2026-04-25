@@ -8,6 +8,10 @@ redirects = []
 
 [build]
 base = "/Users/thor3/pqc-work/signature-web"
+  command = "npm ci && npm run build"
+  functions = "netlify/functions"
+  publish = "dist"
+
 [build.environment]
   NODE_VERSION = "20"
 command = "npm run build"
@@ -19,3 +23,14 @@ publish = "dist"
 [build.processing.images]
 [build.processing.js]
 [build.services]
+
+
+[[headers]]
+  for = "/assets/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

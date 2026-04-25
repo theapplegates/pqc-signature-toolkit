@@ -96,7 +96,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Winternitz Signature Toolkit</h1>
+          <h1 className="text-4xl font-bold text-gray-900">SLH-DSA Test Bed</h1>
           <p className="text-lg text-gray-600 mt-1">Using {CRYPTO_PROFILE.primaryAlgorithm} with {CRYPTO_PROFILE.subkeyAlgorithm} for post-quantum signing and encryption</p>
         </header>
 

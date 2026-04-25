@@ -1,4 +1,4 @@
-# Winternitz Signature Toolkit
+# SLH-DSA Test Bed
 
 Browser-based OpenPGP v6 signing and verification using the Sequoia-PGP WASM build vendored in `vendor/sequoia-wasm`.
 

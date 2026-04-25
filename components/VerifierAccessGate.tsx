@@ -58,7 +58,7 @@ export const VerifierAccessGate: React.FC<Props> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 sm:p-6 lg:p-8">
       <div className="max-w-xl mx-auto mt-16 bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h1 className="text-3xl font-bold text-gray-900">Winternitz Signature Toolkit</h1>
+        <h1 className="text-3xl font-bold text-gray-900">SLH-DSA Test Bed</h1>
         <h2 className="mt-6 text-2xl font-semibold text-gray-800">Verifier Access</h2>
         <p className="mt-1 text-sm text-gray-600">{helperText}</p>
 

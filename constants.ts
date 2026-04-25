@@ -8,8 +8,8 @@ export const TABS = {
 
 export const ALGORITHM = {
   name: 'SLH-DSA-SHAKE-256s',
-  displayName: 'Winternitz / SLH-DSA-SHAKE',
-  marketingName: 'Winternitz Signatures',
+  displayName: 'Claude / SLH-DSA-SHAKE',
+  marketingName: 'Claude Signatures',
   security: 256,
   type: 's',
 };

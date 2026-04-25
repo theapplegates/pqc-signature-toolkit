@@ -4,6 +4,7 @@ import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 import { CheckIcon, CopyIcon, ExclamationTriangleIcon, CheckCircleIcon, DownloadIcon } from './icons/Icons';
 import {
   analyzePublicKeyCompatibility,
+  decryptPrivateKey,
   inspectCert,
   type CertInspection,
 } from '../services/cryptoService';
@@ -57,6 +58,102 @@ const KeyBlock: React.FC<{ title: string; content: string; filename: string }> =
             </button>
         </div>
       </div>
+    </div>
+  );
+};
+
+/**
+ * Locked private-key panel. Asks for the passphrase, decrypts the envelope,
+ * and reveals the plaintext TSK with Copy and Download buttons. The plaintext
+ * is held only in component state — closing the modal drops it.
+ */
+const PrivateKeyPanel: React.FC<{ keyPair: KeyPair }> = ({ keyPair }) => {
+  const isProtected = !!keyPair.salt;
+  const [passphrase, setPassphrase] = useState('');
+  const [revealedTsk, setRevealedTsk] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [working, setWorking] = useState(false);
+
+  // For unprotected keys, the plaintext TSK is already on the keyPair.
+  const plaintextWhenUnprotected = keyPair.privateKeyPgp || keyPair.privateKeyRaw;
+
+  const handleReveal = async () => {
+    setError(null);
+    setWorking(true);
+    try {
+      const tsk = await decryptPrivateKey(keyPair, passphrase);
+      setRevealedTsk(tsk);
+      setPassphrase(''); // wipe the passphrase from React state once we've used it
+    } catch (e) {
+      setError('Decryption failed. Wrong passphrase?');
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const handleHide = () => {
+    setRevealedTsk(null);
+    setError(null);
+  };
+
+  const filename = `private-key-${keyPair.fingerprint.replace(/\s/g, '').slice(-16)}.asc`;
+
+  // Unprotected key: just render the plaintext block straight away.
+  if (!isProtected) {
+    return <KeyBlock title="Private Key" content={plaintextWhenUnprotected} filename={filename} />;
+  }
+
+  // Protected key, not yet revealed: show passphrase prompt.
+  if (!revealedTsk) {
+    return (
+      <div>
+        <h3 className="text-lg font-medium text-gray-800 mb-2">Private Key</h3>
+        <div className="p-4 rounded-md bg-gray-50 border border-gray-200 space-y-3">
+          <p className="text-sm text-gray-700">
+            This private key is protected by a passphrase. Enter it below to reveal the
+            ASCII-armored secret key. The revealed key can be imported into <code className="bg-gray-200 px-1 rounded">sq</code> with{' '}
+            <code className="bg-gray-200 px-1 rounded">sq key import</code>.
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="password"
+              value={passphrase}
+              onChange={(e) => setPassphrase(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && passphrase && !working) handleReveal(); }}
+              placeholder="Enter passphrase"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition"
+              autoComplete="off"
+            />
+            <button
+              onClick={handleReveal}
+              disabled={working || !passphrase}
+              className="px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+            >
+              {working ? 'Decrypting…' : 'Reveal Private Key'}
+            </button>
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  // Revealed: show the plaintext TSK with Copy + Download, plus a Hide button.
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-lg font-medium text-gray-800">Private Key (revealed)</h3>
+        <button
+          onClick={handleHide}
+          className="px-3 py-1 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 transition"
+        >
+          Hide
+        </button>
+      </div>
+      <KeyBlock title="" content={revealedTsk} filename={filename} />
+      <p className="text-xs text-gray-500 mt-2">
+        Tip: <code className="bg-gray-100 px-1 rounded">sq key import &lt; private-key-…asc</code> to add this to your local Sequoia keystore.
+      </p>
     </div>
   );
 };
@@ -194,12 +291,6 @@ export const KeyDetailsModal: React.FC<Props> = ({ keyPair, onClose }) => {
         ? 'Compatibility Check: PASS (NOTES)'
         : 'Compatibility Check: PASS';
 
-  // For passphrase-protected keys, there is no plaintext private-key block to download.
-  // We still render the section to preserve layout, but with guidance text.
-  const privateKeyForDownload = keyPair.salt
-    ? `[Private key is passphrase-protected. Export an unencrypted version via the CLI if you need it portable.]`
-    : (keyPair.privateKeyPgp || keyPair.privateKeyRaw);
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -269,16 +360,12 @@ export const KeyDetailsModal: React.FC<Props> = ({ keyPair, onClose }) => {
                     <div className="ml-3">
                       <p className="font-bold">Private Key - DO NOT SHARE</p>
                       <p className="text-sm">This is your secret key. Keep it safe and do not share it with anyone.</p>
-                      {keyPair.salt && <p className="text-sm mt-1">This key is protected by a passphrase.</p>}
+                      {keyPair.salt && <p className="text-sm mt-1">This key is protected by a passphrase. Enter it below to reveal the importable ASCII-armored block.</p>}
                     </div>
                 </div>
               </div>
 
-              <KeyBlock
-                title="Private Key"
-                content={privateKeyForDownload}
-                filename={`private-key-${keyPair.fingerprint.replace(/\s/g, '').slice(-16)}.asc`}
-              />
+              <PrivateKeyPanel keyPair={keyPair} />
             </div>
         </div>
         <div className="bg-gray-50 px-6 py-4 flex justify-end rounded-b-xl border-t border-gray-200">
@@ -293,3 +380,4 @@ export const KeyDetailsModal: React.FC<Props> = ({ keyPair, onClose }) => {
     </div>
   );
 };
+
